@@ -1,5 +1,5 @@
 
-import { DynamoDB } from '@aws-sdk/client-dynamodb';
+import * as DynamoDB from 'aws-sdk/clients/dynamodb';
 import { DataMapper } from '@aws/dynamodb-data-mapper';
 
 import DBObject from './DbObject';
@@ -22,7 +22,7 @@ export default class Api {
     }
 
     async get(params?: {}){
-        return await this._mapper.get(Object.assign(new DBObject, params))
+        return await this._mapper.get(Object.assign(new DBObject, { id: 'this' }))
     }
 
     async post(body: {}) {
@@ -30,7 +30,7 @@ export default class Api {
         return await this._mapper.put(toSave);
     }
 
-    async put(id: any, body: {}) {
+    async put(id: string, body: DBObject) {
         const toSave = Object.assign(new DBObject, body);
         toSave.id = id;
 

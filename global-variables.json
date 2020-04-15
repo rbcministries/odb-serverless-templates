@@ -1,0 +1,9 @@
+{
+  "domainName": "api.experience.odb.org",
+  "basePath": {
+    "odb-typescript-api": {
+      "dev": "odb-typescript-api-dev",
+      "prod": "odb-typescript-api-prod"
+    }
+  }
+}
