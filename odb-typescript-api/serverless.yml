@@ -1,0 +1,75 @@
+service:
+  name: odb-typescript-api
+# app and org for use with dashboard.serverless.com
+#app: your-app-name
+#org: your-org-name
+
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+
+# Add the serverless-webpack plugin
+plugins:
+  - serverless-webpack
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${opt:stage, 'dev'}
+  apiGateway:
+    minimumCompressionSize: 1024 # Enable gzip compression for responses > 1 KB
+  environment:
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    DYNAMODB_TABLE: ${self:service}-${self:provider.stage}
+  custom:
+    cachingState:
+      prod: true
+      dev: false
+    customDomain:
+      domainName: ${file(../global-variables.json):domainName}
+      basePath: ${file(../global-variables.json):basePath.site-config.${self:provider.stage}} # This will be prefixed to all routes
+      stage: ${self:provider.stage}
+      createRoute53Record: true
+    apiGatewayCaching:
+      enabled: ${self:custom.cachingState.${self:provider.stage}}
+
+functions:
+  getMethod:
+    handler: handler.getMethod
+    events:
+      - http:
+          method: get
+          path: /
+          cors: true
+          caching:
+            enabled: ${self:custom.cachingState.${self:provider.stage}}
+            # cacheKeyParameters:
+            #   - name: request.querystring.override
+            #   - name: request.header.Origin
+            #   - name: request.header.origin
+      - http:
+          method: get
+          path: /admin
+          cors: true
+          authorization: aws_iam
+          caching:
+            enabled: false
+  putMethod:
+    handler: handler.putMethod
+    events:
+      - http:
+          method: put
+          path: /{id}
+  postMethod:
+    handler: handler.postMethod
+    events:
+      - http:
+          method: post
+          path: /
+  deleteMethod:
+    handler: handler.deleteMethod
+    events:
+      - http:
+          method: delete
+          path: /${id}

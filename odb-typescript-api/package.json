@@ -1,0 +1,29 @@
+{
+  "name": "odb-typescript-api",
+  "version": "1.0.0",
+  "description": "Serverless webpack example using Typescript",
+  "main": "handler.js",
+  "scripts": {
+    "test": "mocha -r ts-node/register ./**/*.spec.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^1.0.0-alpha.1",
+    "@aws/dynamodb-data-mapper": "^0.7.3",
+    "@aws/dynamodb-data-mapper-annotations": "^0.7.3",
+    "aws-lambda": "^1.0.5",
+    "http-status-codes": "^1.4.0",
+    "source-map-support": "^0.5.10"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.49",
+    "@types/node": "^10.17.19",
+    "fork-ts-checker-webpack-plugin": "^3.0.1",
+    "serverless-webpack": "^5.2.0",
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.2.4",
+    "webpack": "^4.29.0",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "author": "The serverless webpack authors (https://github.com/elastic-coders/serverless-webpack)",
+  "license": "MIT"
+}
