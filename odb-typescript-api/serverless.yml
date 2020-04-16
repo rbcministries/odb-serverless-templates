@@ -15,7 +15,8 @@ custom:
     createRoute53Record: true
   apiGatewayCaching:
     enabled: ${self:custom.cachingState.${self:provider.stage}}
-
+  autoscaling:
+    - table: ${self:provider.environment.DYNAMODB_TABLE}  # DynamoDB Resource
 plugins:
   - serverless-webpack
   - serverless-domain-manager
