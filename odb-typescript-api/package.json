@@ -4,7 +4,8 @@
   "description": "Serverless webpack example using Typescript",
   "main": "handler.js",
   "scripts": {
-    "test": "npx mocha -r ts-node/register ./**/*.spec.ts"
+    "test": "npx mocha -r ts-node/register ./**/*.spec.ts",
+    "deploy": "sls deploy --stage $SLS_STAGE"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^1.0.0-alpha.1",
