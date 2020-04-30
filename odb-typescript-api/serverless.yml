@@ -45,6 +45,7 @@ provider:
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
     DYNAMODB_TABLE: ${self:service}-${self:provider.stage}
+    userPool: us-east-1_XJN8imX9v
 
 functions:
   getMethod:
@@ -64,7 +65,7 @@ functions:
           method: get
           path: /admin
           cors: true
-          authorization: aws_iam
+          authorizer: aws_iam
           caching:
             enabled: false
   putMethod:
