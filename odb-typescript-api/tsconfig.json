@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "lib": ["es2017"],
     "removeComments": true,
     "moduleResolution": "node",
@@ -16,6 +17,7 @@
     ".serverless/**/*",
     ".webpack/**/*",
     "_warmup/**/*",
-    ".vscode/**/*"
+    ".vscode/**/*",
+    "utils/**/*"
   ]
 }
