@@ -30,6 +30,16 @@ provider:
   iamManagedPolicies:
     - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
     - 'arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator'
+  iamRoleStatements:
+    - Action:
+        - cognito-idp:AdminGetUser
+        - cognito-idp:ListUsers
+      Resource: "*"
+      Effect: Allow
+    - Action:
+        - lambda:*
+      Resource: "*"
+      Effect: Allow
   apiGateway:
     minimumCompressionSize: 1024 # Enable gzip compression for responses > 1 KB
   environment:
