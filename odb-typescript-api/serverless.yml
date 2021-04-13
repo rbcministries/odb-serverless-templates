@@ -2,6 +2,18 @@ service:
   name: odb-typescript-api
 
 custom:
+  alerts:
+    # stages: Can specify stages
+    #   - production
+    topics:
+      alarm:
+        topic: ${self:service}-${opt:stage}-alerts-alarm
+        notifications: # can be other types of notification, such as Slack or Teams
+          - protocol: email
+            endpoint: webteam@odb.org # Change this to your email address
+    alarms: # see documentation for more advanced examples
+      - functionErrors
+      - functionThrottles
   # Sets whether API Gateway Cache should
   # be enabled
   #
@@ -56,6 +68,7 @@ plugins:
   - serverless-plugin-typescript
   - serverless-offline
   - serverless-aws-documentation
+  - serverless-plugin-aws-alerts
 
 provider:
   name: aws
