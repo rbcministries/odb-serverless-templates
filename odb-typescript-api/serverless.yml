@@ -2,51 +2,86 @@ service:
   name: odb-typescript-api
 
 custom:
-  webpack:
-    webpackConfig: ./webpack.config.js
-    includeModules: true
+  # Sets whether API Gateway Cache should
+  # be enabled
+  #
+  # In this example, only prod is caching,
+  # however, there may be a desire to have the
+  # caching use the same behavior as
+  # prod in other staging envs, such as UAT
   cachingState:
     prod: true
     dev: false
-  customDomain:
-    domainName: ${file(../global-variables.json):domainName}
-    basePath: ${file(../global-variables.json):basePath.odb-typescript-api.${self:provider.stage}} # This will be prefixed to all routes
-    stage: ${self:provider.stage}
-    createRoute53Record: true
+    uat: false
+    qa: false
+  # Creates OPEN API documentation that 
+  # can be exported, to Confluence for example
+  documentation:
+    api:
+      info:
+        version: "2" # see note above about this being ignored
+        title: "ODB TypeScript API Example" # see note above about this being ignored
+        description: "This is a sample API that shows all the configuration commonly used in Crouton services."
+        termsOfService: "https://odb.org/terms-of-service"
+    authorizers:
+      -
+        name: "aws_iam"
+        description: "AWS Cognito authorization"
   apiGatewayCaching:
     enabled: ${self:custom.cachingState.${self:provider.stage}}
-  autoscaling:
-    - table: ${self:provider.environment.DYNAMODB_TABLE}  # DynamoDB Resource
+    ttlInSeconds: 300 # defaults to the maximum allowed: 3600
+  # For use with domain manager plugin.
+  # Only useful if using a REST API.
+  # If you're using an HTTP API, you'll need to configure
+  # a cloudfront distribution
+  customDomain:
+    domainName: api.experience.odb.org # if REST API
+    basePath: ${self:service}
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+  # Set autoscaling for DynamoDB 
+  # The key "DynamoDBTable"
+  # matches the key of the object in the 
+  # resources section
+  dynamodbAutoscaling:
+    tablesConfig:
+      # Enbale autoscaling for all
+      DynamoDBTable:
+        minCapacity: 2
+        maxCapacity: 100
 plugins:
-  - serverless-webpack
   - serverless-domain-manager
   - serverless-plugin-dynamodb-autoscaling
   - serverless-api-gateway-caching
+  - serverless-plugin-typescript
+  - serverless-offline
+  - serverless-aws-documentation
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   stage: ${opt:stage, 'dev'}
-  iamManagedPolicies:
-    - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
-    - 'arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator'
-  iamRoleStatements:
-    - Action:
-        - cognito-idp:AdminGetUser
-        - cognito-idp:ListUsers
-      Resource: "*"
-      Effect: Allow
-    - Action:
-        - lambda:*
-      Resource: "*"
-      Effect: Allow
-  apiGateway:
-    minimumCompressionSize: 1024 # Enable gzip compression for responses > 1 KB
+  # Example IAM policies
+  # iamManagedPolicies:
+  #   - "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+  #   - "arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator"
+  # iamRoleStatements:
+  #   - Action:
+  #       - cognito-idp:AdminGetUser
+  #       - cognito-idp:ListUsers
+  #     Resource: "*"
+  #     Effect: Allow
+  #   - Action:
+  #       - lambda:*
+  #     Resource: "*"
+  #     Effect: Allow
+  # Envionrment variables can be used in both the source
+  # code: (process.env.THING) 
+  # or 
+  # in serverless: ${self:provider.environment.DYNAMODB_TABLE}
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
     DYNAMODB_TABLE: ${self:service}-${self:provider.stage}
-    userPool: us-east-1_XJN8imX9v
-
 functions:
   getMethod:
     handler: handler.getMethod
@@ -57,10 +92,20 @@ functions:
           cors: true
           caching:
             enabled: ${self:custom.cachingState.${self:provider.stage}}
-            # cacheKeyParameters:
-            #   - name: request.querystring.override
-            #   - name: request.header.Origin
-            #   - name: request.header.origin
+            # be sure to set cache key parameters
+            # that match what you're expecting in the source code
+            cacheKeyParameters:
+              - name: request.querystring.override
+          documentation: 
+            summary: "Sample GET method"
+            queryParams: 
+              - 
+                name: "override"
+                description: "Allows you to bypass cache by using a unique query string."
+      # /admin is expected to require authorization
+      # and caching is always set to false
+      # This means that users logged in as admins 
+      # aren't given cached pages.
       - http:
           method: get
           path: /admin
@@ -68,28 +113,57 @@ functions:
           authorizer: aws_iam
           caching:
             enabled: false
+          documentation: 
+            summary: "Sample Admin GET method. Like GET but without the caching. Must be logged in."
+            queryParams: 
+              - 
+                name: "override"
+                description: "Allows you to bypass cache by using a unique query string."
   putMethod:
     handler: handler.putMethod
     events:
       - http:
           method: put
           path: /{id}
+          documentation: 
+            summary: "Sample PUT method"
+            requestBody:
+              description: "PUT body description"
+            pathParams:
+              name: "id"
+              description: "ID of the thing you want to create/modify"
+ 
   postMethod:
     handler: handler.postMethod
     events:
       - http:
           method: post
           path: /
+          documentation: 
+            summary: "Sample POST method"
+            requestBody:
+              description: "POSt body description"
   deleteMethod:
     handler: handler.deleteMethod
     events:
       - http:
           method: delete
           path: /{id}
+          documentation: 
+            summary: "Sample DELETE method"
+
+            pathParams:
+              name: "id"
+              description: "ID of the thing you want to DELETE"
 resources:
+  # Any cloudformation resources that you need that are not 
+  # automatically created by serverless goes here.
+  # This is standard cloudformation yaml, with
+  # the addition of being able to reference serveless
+  # variables.
   Resources:
     DynamoDBTable:
-      Type: 'AWS::DynamoDB::Table'
+      Type: "AWS::DynamoDB::Table"
       Properties:
         AttributeDefinitions:
           - AttributeName: id
@@ -97,11 +171,9 @@ resources:
           - AttributeName: created_at
             AttributeType: S
         KeySchema:
-          -
-            AttributeName: id
+          - AttributeName: id
             KeyType: HASH
-          -
-            AttributeName: created_at
+          - AttributeName: created_at
             KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 10
