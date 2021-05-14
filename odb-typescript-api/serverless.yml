@@ -4,7 +4,7 @@ service:
 custom:
   alerts:
     # stages: Can specify stages
-    #   - production
+    #   - prod
     topics:
       alarm:
         topic: ${self:service}-${opt:stage}-alerts-alarm
