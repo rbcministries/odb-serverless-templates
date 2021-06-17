@@ -7,7 +7,7 @@ custom:
     #   - prod
     topics:
       alarm:
-        topic: ${self:service}-${opt:stage}-alerts-alarm
+        topic: ${self:service.name}-${opt:stage}-alerts-alarm
         notifications: # can be other types of notification, such as Slack or Teams
           - protocol: email
             endpoint: webteam@odb.org # Change this to your email address
@@ -48,7 +48,7 @@ custom:
   # a cloudfront distribution
   customDomain:
     domainName: api.experience.odb.org # if REST API
-    basePath: ${self:service}
+    basePath: ${self:service.name}
     stage: ${self:provider.stage}
     createRoute53Record: true
   # Set autoscaling for DynamoDB 
@@ -94,7 +94,7 @@ provider:
   # in serverless: ${self:provider.environment.DYNAMODB_TABLE}
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
-    DYNAMODB_TABLE: ${self:service}-${self:provider.stage}
+    DYNAMODB_TABLE: ${self:service.name}-${self:provider.stage}
 functions:
   getMethod:
     handler: handler.getMethod
@@ -143,8 +143,9 @@ functions:
             requestBody:
               description: "PUT body description"
             pathParams:
-              name: "id"
-              description: "ID of the thing you want to create/modify"
+              - 
+                name: "id"
+                description: "ID of the thing you want to create/modify"
  
   postMethod:
     handler: handler.postMethod
@@ -164,10 +165,10 @@ functions:
           path: /{id}
           documentation: 
             summary: "Sample DELETE method"
-
             pathParams:
-              name: "id"
-              description: "ID of the thing you want to DELETE"
+              - 
+                name: "id"
+                description: "ID of the thing you want to DELETE"
 resources:
   # Any cloudformation resources that you need that are not 
   # automatically created by serverless goes here.
